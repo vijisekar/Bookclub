@@ -23,6 +23,8 @@ This is a responsive website template customized using HTML, CSS, and images to 
 - Host on AWS (S3 + CloudFront)
 - Add contact form and book suggestions
 - Make it dynamic using JavaScript
+ 
+  
 
 ---
 
