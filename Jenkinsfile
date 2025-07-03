@@ -4,7 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = 'bookclub-image'
         CONTAINER_NAME = 'bookclub-app'
-        PORT_MAPPING = '8080:80'
+        PORT_MAPPING = '8081:80'
     }
 
     stages {
