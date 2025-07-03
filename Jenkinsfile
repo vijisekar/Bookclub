@@ -1,8 +1,14 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = 'bookclub-image'
+        CONTAINER_NAME = 'bookclub-app'
+        PORT_MAPPING = '8080:80'
+    }
+
     stages {
-        stage('Clone Repo') {
+        stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/vijisekar/Bookclub.git'
             }
@@ -11,15 +17,26 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build('bookclub-image')
+                    dockerImage = docker.build("${IMAGE_NAME}")
                 }
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Stop Previous Container') {
             steps {
                 script {
-                    dockerImage.run('-p 8080:80')
+                    sh """
+                        docker stop ${CONTAINER_NAME} || true
+                        docker rm ${CONTAINER_NAME} || true
+                    """
+                }
+            }
+        }
+
+        stage('Run New Container') {
+            steps {
+                script {
+                    dockerImage.run("-d -p ${PORT_MAPPING} --name ${CONTAINER_NAME}")
                 }
             }
         }
