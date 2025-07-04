@@ -2,9 +2,10 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'bookclub-image'
-        CONTAINER_NAME = 'bookclub-app'
-        PORT_MAPPING = '8081:80'
+        IMAGE_NAME = 'bookclub-app'
+        ECR_URI = '471112985503.dkr.ecr.us-east-1.amazonaws.com/bookclub-app'
+        CLUSTER_NAME = 'bookclub-cluster'
+        REGION = 'us-east-1'
     }
 
     stages {
@@ -16,28 +17,32 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    dockerImage = docker.build("${IMAGE_NAME}")
-                }
+                sh 'docker build -t ${IMAGE_NAME}:latest .'
             }
         }
 
-        stage('Stop Previous Container') {
+        stage('Login to ECR') {
             steps {
-                script {
-                    sh """
-                        docker stop ${CONTAINER_NAME} || true
-                        docker rm ${CONTAINER_NAME} || true
-                    """
-                }
+                sh 'aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ECR_URI}'
             }
         }
 
-        stage('Run New Container') {
+        stage('Tag & Push to ECR') {
             steps {
-                script {
-                    dockerImage.run("-d -p ${PORT_MAPPING} --name ${CONTAINER_NAME}")
-                }
+                sh '''
+                    docker tag ${IMAGE_NAME}:latest ${ECR_URI}:latest
+                    docker push ${ECR_URI}:latest
+                '''
+            }
+        }
+
+        stage('Deploy to EKS') {
+            steps {
+                sh '''
+                    aws eks update-kubeconfig --region ${REGION} --name ${CLUSTER_NAME}
+                    kubectl apply -f k8s/deployment.yaml
+                    kubectl apply -f k8s/service.yaml
+                '''
             }
         }
     }
