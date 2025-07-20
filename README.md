@@ -45,7 +45,6 @@ This is a responsive website template customized using HTML, CSS, and images to 
 
 > 💡 Now, every push to `main` triggers a Jenkins build → Docker push to ECR → Auto-deploys to EKS!
 
----
 
 ## ❤️ Special Thanks
 
